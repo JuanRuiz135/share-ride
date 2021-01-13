@@ -1,4 +1,4 @@
-Comparte Ride
+Share Ride
 =============
 
-Group-bounded, invite-only, carpooling platform
+Group-bounded, invite-only, carpooling platform build with Django
