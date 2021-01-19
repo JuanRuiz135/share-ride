@@ -3,6 +3,8 @@
 # Django
 from django.contrib.auth import authenticate, password_validation
 from django.core.validators import RegexValidator
+from django.core.mail import EmailMultiAlternatives
+from django.template.loader import render_to_string
 
 # Django REST framework
 from rest_framework import serializers
@@ -101,8 +103,36 @@ class UserSignUpSerializer(serializers.Serializer):
 
     def create(self, data):
         """ Handle user/profile creation. """
-
+        # delete password conf, not needed
         data.pop('password_confirmation')
+
+        # create user and profile
         user = User.objects.create_user(**data, is_verified=False)
         Profile.objects.create(user=user)
+        
+        # send email confirmation to user
+        self.send_confirmation_email(user)
+
         return user
+
+    def send_confirmation_email(self, user):
+        """ Send account verification link to given user. """
+        verification_token = self.gen_verification_token(user)
+        
+        subject = 'Welcome @{}! Verify your account to start using ShareRide.'.format(user.username)
+        from_email = 'ShareRide <noreply@shareride.com>'
+        content = render_to_string(
+            'emails/users/account_verification.html',
+            {'token': verification_token, 'user':user}
+        )
+
+        # send email 
+        msg = EmailMultiAlternatives(subject, content, from_email, [user.email])
+        msg.attach_alternative(content, "text/html")
+        msg.send()
+
+        print("Sending email")
+
+    def gen_verification_token(self, user):
+        """ Create JWT token that the user can use to verify their account. """
+        return 'abc'
