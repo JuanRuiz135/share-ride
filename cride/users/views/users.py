@@ -6,18 +6,21 @@ from rest_framework.response import Response
 from rest_framework import status
 
 # Serializers
-from cride.users.serializers import UserLoginSerializer
+from cride.users.serializers import (
+    UserLoginSerializer, 
+    UserModelSerializer
+    )
 
-class UserLoginAPIView():
+class UserLoginAPIView(APIView):
     """ User login API view. """
 
     def post(self, request, *args, **kwargs):
         """ Handle HTTP POST request. """
         serializer = UserLoginSerializer(data=request.data)
         serializer.is_valid(raise_exception=True)
-        token = serializer.save()
+        user, token = serializer.save()
         data = {
-            'status': 'ok',
+            'user': UserModelSerializer(user).data,
             'token': token
         }
         return Response(data, status=status.HTTP_201_CREATED)
